@@ -12,8 +12,10 @@ import LubricantsSection from "@/Components/LubricantsSection";
 import SpecialProductsSection from "@/Components/SpecialProductsSection";
 import CommodityProductsSection from "@/Components/CommodityProductsSection";
 import StatsSection from "@/Components/StatsSection";
+import CertificatesSection from '@/Components/CertificatesSection';
 import ContactSection from "@/Components/ContactSection";
 import MainLayout from "@/Layouts/MainLayout";
+
 
 // Komponen utama
 export default function Welcome({ auth, homeProducts = [] }) {
@@ -31,6 +33,7 @@ export default function Welcome({ auth, homeProducts = [] }) {
       <HeroSection />
       <TrustedSection />
       <AboutSection />
+      <CertificatesSection /> 
       <FacilitiesSection />
       <LubricantsSection />
       {/* Bagian Produk Spesial (data dari controller via props) */}

@@ -5,6 +5,8 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\Admin\ProductController as AdminProduct;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboard;
+
 use Inertia\Inertia;
 
 // HOME → Welcome.jsx (data diambil di controller)

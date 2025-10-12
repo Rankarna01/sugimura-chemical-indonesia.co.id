@@ -1,8 +1,14 @@
 import React from "react";
-import { Link, useForm, usePage } from "@inertiajs/react";
+import { Link, useForm, usePage, router } from "@inertiajs/react"; // ← pakai router
 import AdminLayout from "@/Layouts/AdminLayout";
 
-/* ---------- helpers ---------- */
+/* === helpers UI === */
+const norm = (src) =>
+  typeof src === "string"
+    ? src.startsWith("/storage") || src.startsWith("http")
+      ? src
+      : `/storage/${src}`
+    : URL.createObjectURL(src);
 
 function Card({ title, children }) {
   return (
@@ -13,13 +19,12 @@ function Card({ title, children }) {
   );
 }
 
-function Field({ label, error, children, hint }) {
+function Field({ label, error, children }) {
   return (
     <label className="block">
       {label && <div className="mb-1 text-sm font-semibold text-emerald-800">{label}</div>}
       {children}
-      {hint && <div className="text-xs text-emerald-800/70 mt-1">{hint}</div>}
-      {error && <div className="text-sm text-red-600 mt-1">{error}</div>}
+      {!!error && <div className="text-sm text-red-600 mt-1">{error}</div>}
     </label>
   );
 }
@@ -41,7 +46,9 @@ function TagList({ title, items = [], onAdd, onRemove }) {
               className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-100"
             >
               {t}
-              <button type="button" onClick={() => onRemove(i)} className="text-red-600">×</button>
+              <button type="button" onClick={() => onRemove(i)} className="text-red-600">
+                ×
+              </button>
             </span>
           ))
         ) : (
@@ -53,14 +60,8 @@ function TagList({ title, items = [], onAdd, onRemove }) {
 }
 
 function UploadGrid({ label, files = [], onChange, multiple = true }) {
-  // files: array of File OR string (existing path)
   const inputRef = React.useRef(null);
-  const preview = (f) => (typeof f === "string" ? (f.startsWith("/storage") ? f : `/storage/${f}`) : URL.createObjectURL(f));
-
-  const remove = (idx) => {
-    const next = files.filter((_, i) => i !== idx);
-    onChange(next);
-  };
+  const remove = (idx) => onChange(files.filter((_, i) => i !== idx));
 
   return (
     <Field label={label}>
@@ -78,16 +79,11 @@ function UploadGrid({ label, files = [], onChange, multiple = true }) {
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {files?.map((f, i) => (
           <div key={i} className="relative group">
-            <img
-              src={preview(f)}
-              className="rounded-xl border aspect-[16/10] object-cover w-full"
-              alt="preview"
-            />
+            <img src={norm(f)} className="rounded-xl border aspect-[16/10] object-cover w-full" />
             <button
               type="button"
               onClick={() => remove(i)}
-              className="absolute top-2 right-2 px-2 py-1 rounded-lg bg-red-600 text-white text-xs opacity-90 hover:opacity-100"
-              title="Hapus"
+              className="absolute top-2 right-2 px-2 py-1 rounded-lg bg-red-600 text-white text-xs"
             >
               Hapus
             </button>
@@ -105,13 +101,13 @@ function UploadGrid({ label, files = [], onChange, multiple = true }) {
   );
 }
 
-/* ---------- page ---------- */
-
+/* === PAGE === */
 export default function Form() {
   const { product } = usePage().props;
   const isEdit = !!product;
 
-  const { data, setData, post, put, processing, errors } = useForm({
+  const form = useForm({
+    // utama
     title: product?.title || "",
     slug: product?.slug || "",
     type: product?.type || "cutting",
@@ -119,73 +115,104 @@ export default function Form() {
     product_code: product?.product_code || "",
     excerpt: product?.excerpt || "",
     description: product?.description || "",
+    // list teks
     features: product?.features || [],
     applications: product?.applications || [],
-    standards: product?.standards || [],
+    // status
     is_active: product?.is_active ?? true,
     order_index: product?.order_index ?? 0,
+    // seo
     seo_title: product?.seo_title || "",
     seo_description: product?.seo_description || "",
-
-    // single legacy images (optional)
+    // single files
     thumbnail: null,
     banner: null,
-
-    // new multi galleries (arrays of File OR existing strings)
+    // galleries
     banner_gallery: product?.banner_gallery || [],
     description_images: product?.description_images || [],
     features_images: product?.features_images || [],
     applications_images: product?.applications_images || [],
-    standards_images: product?.standards_images || [],
   });
+
+  // Build FormData manual
+  function buildFormData(d) {
+    const fd = new FormData();
+
+    // primitive
+    fd.append("title", d.title ?? "");
+    fd.append("slug", d.slug ?? "");
+    fd.append("type", d.type ?? "");
+    fd.append("badge", d.badge ?? "");
+    fd.append("product_code", d.product_code ?? "");
+    fd.append("excerpt", d.excerpt ?? "");
+    fd.append("description", d.description ?? "");
+    fd.append("is_active", d.is_active ? "1" : "0");
+    fd.append("order_index", String(d.order_index ?? 0));
+    fd.append("seo_title", d.seo_title ?? "");
+    fd.append("seo_description", d.seo_description ?? "");
+
+    // list teks
+    (d.features || []).forEach((v, i) => fd.append(`features[${i}]`, v));
+    (d.applications || []).forEach((v, i) => fd.append(`applications[${i}]`, v));
+
+    // single files
+    if (d.thumbnail instanceof File) fd.append("thumbnail", d.thumbnail);
+    if (d.banner instanceof File) fd.append("banner", d.banner);
+
+    // multi files (campuran File & string)
+    const split = (arr = []) => ({
+      files: arr.filter((x) => x instanceof File),
+      keep: arr.filter((x) => typeof x === "string"),
+    });
+
+    const bg = split(d.banner_gallery);
+    bg.files.forEach((f) => fd.append("banner_gallery[]", f));
+    fd.append("banner_gallery_keep", JSON.stringify(bg.keep));
+
+    const di = split(d.description_images);
+    di.files.forEach((f) => fd.append("description_images[]", f));
+    fd.append("description_images_keep", JSON.stringify(di.keep));
+
+    const fi = split(d.features_images);
+    fi.files.forEach((f) => fd.append("features_images[]", f));
+    fd.append("features_images_keep", JSON.stringify(fi.keep));
+
+    const ai = split(d.applications_images);
+    ai.files.forEach((f) => fd.append("applications_images[]", f));
+    fd.append("applications_images_keep", JSON.stringify(ai.keep));
+
+    return fd;
+  }
 
   const submit = (e) => {
     e.preventDefault();
-
-    const form = new FormData();
-
-    // primitives
-    [
-      "title","slug","type","badge","product_code",
-      "excerpt","description","is_active","order_index",
-      "seo_title","seo_description",
-    ].forEach((k) => form.append(k, data[k] ?? ""));
-
-    // arrays of strings
-    ["features","applications","standards"].forEach((k) => {
-      (data[k] || []).forEach((v, i) => form.append(`${k}[${i}]`, v));
-    });
-
-    // single files
-    if (data.thumbnail) form.append("thumbnail", data.thumbnail);
-    if (data.banner) form.append("banner", data.banner);
-
-    // multi files (File OR existing string path)
-    const appendMany = (key) => {
-      (data[key] || []).forEach((v, i) => {
-        // Only append File objects. Existing strings will be handled server-side (keep).
-        if (v instanceof File) form.append(`${key}[${i}]`, v);
-      });
-      // also send list of keep paths (strings) so backend can merge
-      const keep = (data[key] || []).filter((x) => typeof x === "string");
-      form.append(`${key}_keep`, JSON.stringify(keep));
-    };
-
-    ["banner_gallery","description_images","features_images","applications_images","standards_images"].forEach(appendMany);
+    const fd = buildFormData(form.data);
 
     if (isEdit) {
-      form.append("_method", "PUT");
-      put(route("admin.products.update", product.id), { forceFormData: true });
+      // Spoof PUT via FormData
+      fd.append("_method", "PUT");
+      router.post(route("admin.products.update", product.id), fd, {
+        forceFormData: true,
+        preserveScroll: true,
+        onError: (errs) => form.setError(errs),
+      });
     } else {
-      post(route("admin.products.store"), { forceFormData: true });
+      router.post(route("admin.products.store"), fd, {
+        forceFormData: true,
+        preserveScroll: true,
+        onError: (errs) => form.setError(errs),
+      });
     }
   };
 
+  const setData = form.setData;
   const addTag = (key) => {
     const val = prompt(`Tambah item untuk ${key}`);
-    if (val) setData(key, [...data[key], val]);
+    if (val) setData(key, [...form.data[key], val]);
   };
-  const delTag = (key, i) => setData(key, data[key].filter((_, idx) => idx !== i));
+  const delTag = (key, i) => setData(key, form.data[key].filter((_, idx) => idx !== i));
+
+  const { data, processing, errors } = form;
 
   return (
     <AdminLayout title={`${isEdit ? "Edit" : "Tambah"} Produk`}>
@@ -194,26 +221,47 @@ export default function Form() {
         <div className="lg:col-span-2 space-y-6">
           <Card title="Informasi Utama">
             <Field label="Judul" error={errors.title}>
-              <input className="input" value={data.title} onChange={(e) => setData("title", e.target.value)} />
+              <input
+                className="input"
+                value={data.title}
+                onChange={(e) => setData("title", e.target.value)}
+              />
             </Field>
 
             <div className="grid md:grid-cols-2 gap-4">
               <Field label="Slug (opsional)" error={errors.slug}>
-                <input className="input" value={data.slug} onChange={(e) => setData("slug", e.target.value)} />
+                <input
+                  className="input"
+                  value={data.slug}
+                  onChange={(e) => setData("slug", e.target.value)}
+                />
               </Field>
               <Field label="Type" error={errors.type}>
-                <select className="input" value={data.type} onChange={(e) => setData("type", e.target.value)}>
+                <select
+                  className="input"
+                  value={data.type}
+                  onChange={(e) => setData("type", e.target.value)}
+                >
                   <option value="cutting">cutting</option>
                   <option value="forming">forming</option>
                   <option value="drawing">drawing</option>
                   <option value="forging">forging</option>
+                  <option value="antirust">Anti-Rust</option>
+                  <option value="Inhibitor">Inhibitor</option>
+                  <option value="accelerant">Accelerant</option>
+                  <option value="cleaner">cleaner</option>
+
                 </select>
               </Field>
             </div>
 
             <div className="grid md:grid-cols-2 gap-4">
               <Field label="Badge" error={errors.badge}>
-                <input className="input" value={data.badge} onChange={(e) => setData("badge", e.target.value)} />
+                <input
+                  className="input"
+                  value={data.badge}
+                  onChange={(e) => setData("badge", e.target.value)}
+                />
               </Field>
               <Field label="Product Code" error={errors.product_code}>
                 <input
@@ -241,7 +289,7 @@ export default function Form() {
             </Field>
           </Card>
 
-          <Card title="Keunggulan, Aplikasi & Standar">
+          <Card title="Keunggulan & Aplikasi">
             <TagList
               title="Keunggulan (features)"
               items={data.features}
@@ -254,15 +302,9 @@ export default function Form() {
               onAdd={() => addTag("applications")}
               onRemove={(i) => delTag("applications", i)}
             />
-            <TagList
-              title="Standar & Mutu"
-              items={data.standards}
-              onAdd={() => addTag("standards")}
-              onRemove={(i) => delTag("standards", i)}
-            />
           </Card>
 
-          <Card title="Gambar per Tab (Swiper Gallery)">
+          <Card title="Gallery per Tab (Swiper)">
             <UploadGrid
               label="Deskripsi - Gallery"
               files={data.description_images}
@@ -277,11 +319,6 @@ export default function Form() {
               label="Aplikasi - Gallery"
               files={data.applications_images}
               onChange={(arr) => setData("applications_images", arr)}
-            />
-            <UploadGrid
-              label="Standar & Mutu - Gallery"
-              files={data.standards_images}
-              onChange={(arr) => setData("standards_images", arr)}
             />
           </Card>
         </div>
@@ -304,14 +341,20 @@ export default function Form() {
                 type="number"
                 className="input"
                 value={data.order_index}
-                onChange={(e) => setData("order_index", parseInt(e.target.value || 0))}
+                onChange={(e) =>
+                  setData("order_index", parseInt(e.target.value || 0))
+                }
               />
             </Field>
           </Card>
 
           <Card title="SEO">
             <Field label="SEO Title" error={errors.seo_title}>
-              <input className="input" value={data.seo_title} onChange={(e) => setData("seo_title", e.target.value)} />
+              <input
+                className="input"
+                value={data.seo_title}
+                onChange={(e) => setData("seo_title", e.target.value)}
+              />
             </Field>
             <Field label="SEO Description" error={errors.seo_description}>
               <textarea
@@ -324,10 +367,16 @@ export default function Form() {
 
           <Card title="Gambar Utama">
             <Field label="Thumbnail (single)" error={errors.thumbnail}>
-              <input type="file" onChange={(e) => setData("thumbnail", e.target.files?.[0] || null)} />
+              <input
+                type="file"
+                onChange={(e) => setData("thumbnail", e.target.files?.[0] || null)}
+              />
             </Field>
-            <Field label="Banner (single - opsi lama)" error={errors.banner}>
-              <input type="file" onChange={(e) => setData("banner", e.target.files?.[0] || null)} />
+            <Field label="Banner (single - opsional legacy)" error={errors.banner}>
+              <input
+                type="file"
+                onChange={(e) => setData("banner", e.target.files?.[0] || null)}
+              />
             </Field>
             <UploadGrid
               label="Banner Gallery (slideshow)"
@@ -359,7 +408,7 @@ export default function Form() {
   );
 }
 
-/* inject util class .input sekali (untuk Tailwind CDN) */
+/* util .input (untuk Tailwind CDN) */
 if (typeof window !== "undefined") {
   const id = "__admin_input_util";
   if (!document.getElementById(id)) {

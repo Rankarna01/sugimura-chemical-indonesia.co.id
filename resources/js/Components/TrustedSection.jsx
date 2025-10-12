@@ -12,6 +12,8 @@ export default function TrustedSection() {
         { src: 'https://storage.bkkbisa.net/company_logo/hFk0oJVd61DAEs6iSuLJjOYk2dS256.jpg', alt: 'Chuhai Giken Indonesia' },
         { src: 'https://www.istw.co.id/assets/istw/logo.png', alt: 'ISTW' },
         { src: 'https://s3-symbol-logo.tradingview.com/garuda-metalindo-tbk-pt--600.png', alt: 'Garuda Metalindo' },
+        { src: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ3oQ1V-cMIelGibSwe9D_TQEh_x3MBg6b41A&s', alt: 'PT selamat sempurna TBK' },
+        { src: 'https://media.licdn.com/dms/image/v2/D4E0BAQHC6zU-MgrPNg/company-logo_200_200/company-logo_200_200/0/1710920359673/pt_mitsubishi_krama_yudha_motors_and_manufacturing_logo?e=2147483647&v=beta&t=uPRYyToT2DiUUvJboGiAchrHrphj1hxubTkHWptXfek', alt: 'PT Mitsubishi motors Krama yudha' },
     ];
 
     // Duplikasi array untuk menciptakan efek loop yang mulus

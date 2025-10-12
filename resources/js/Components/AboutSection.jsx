@@ -40,7 +40,7 @@ export default function AboutSection() {
                                 </svg>
                             </div>
                             <div>
-                                <h3 className="text-xs font-bold uppercase tracking-wider">Mission Statement</h3>
+                                
                                 <p className="mt-2 text-base md:text-lg">
                                     Memberikan solusi pelumasan yang aman, efisien, dan berkelanjutan melalui formulasi tepat, kontrol mutu laboratorium, serta layanan teknis responsif—untuk memperpanjang umur peralatan dan meningkatkan produktivitas pelanggan.
                                 </p>

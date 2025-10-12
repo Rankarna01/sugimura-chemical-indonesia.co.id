@@ -6,8 +6,8 @@ import CountUp from 'react-countup';
 // Data untuk statistik, agar mudah diubah
 const statsData = [
     { end: 50, label: 'Jumlah Karyawan', delay: 0 },
-    { end: 200, label: 'Jumlah Client Perusahaan', delay: 100 },
-    { end: 20, label: 'Cabang Perusahaan', delay: 200 },
+    { end: 100, label: 'Jumlah Client Perusahaan', delay: 100 },
+    { end: 11, label: 'Networking', delay: 200 },
 ];
 
 const StatItem = ({ stat }) => (

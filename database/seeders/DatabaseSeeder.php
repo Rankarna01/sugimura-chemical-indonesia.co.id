@@ -13,10 +13,10 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
 {
-    $this->call([
-        AdminUserSeeder::class,
-        ProductSeeder::class, // kalau kamu sudah punya
-    ]);
+    // user admin demo opsional—kalau sudah ada, boleh dilewati
+    // \App\Models\User::factory()->create([...]);
+
+    $this->call(ProductDemoSeeder::class);
 }
 
 }
