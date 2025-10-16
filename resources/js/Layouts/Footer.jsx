@@ -127,7 +127,7 @@ export default function Footer() {
                   href="tel:+622129568888"
                   className="text-emerald-300 px-1"
                 >
-                  (021) 2956 8888 ext 202
+                  (021) 2956 8888 
                 </a>
               </li>
               <li className="flex items-center gap-3">

@@ -17,7 +17,7 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 // Detail produk (slug)
-Route::get('/produk/{slug}', [ProductController::class, 'show'])->name('products.show');
+
 
 // --- ADMIN ---
 Route::middleware(['auth','can:admin'])->prefix('admin')->name('admin.')->group(function () {
@@ -30,5 +30,12 @@ Route::middleware(['auth','can:admin'])->prefix('admin')->name('admin.')->group(
     Route::put('/products/{product}', [AdminProduct::class, 'update'])->name('products.update');
     Route::delete('/products/{product}', [AdminProduct::class, 'destroy'])->name('products.destroy');
 });
+
+Route::get('/produk/{slug}', function ($slug) {
+    // Kita hanya mengirim slug-nya saja ke komponen React
+    return Inertia::render('Product/Show', [
+        'slug' => $slug
+    ]);
+})->name('products.show');
 
 require __DIR__.'/auth.php';

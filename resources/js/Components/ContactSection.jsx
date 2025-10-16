@@ -8,7 +8,7 @@ const contactInfo = [
     title: "Telp (Bekasi)",
     content: (
       <a href="tel:+622129568888" className="hover:text-green-600 transition">
-        (021) 2956 8888 ext 202
+        (021) 2956 8888 
       </a>
     ),
   },

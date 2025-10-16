@@ -9,11 +9,11 @@ export default function TrustedSection() {
         { src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ee/Toyota_logo_%28Red%29.svg/950px-Toyota_logo_%28Red%29.svg.png', alt: 'Toyota' },
         { src: 'https://perusahaanjepang.com/wp-content/uploads/2015/08/13-PT.-ASTRA-DAIHATSU-MOTOR-logo.png', alt: 'Daihatsu' },
         { src: 'https://media.licdn.com/dms/image/v2/C560BAQFdGPeTgPgHzQ/company-logo_200_200/company-logo_200_200/0/1668664396600/central_motor_wheel_indonesia_logo?e=2147483647&v=beta&t=g4fkvPFuOCHUka_lU2kHFV3ipnN1HdjYKvxXmHYsPYs', alt: 'Central Motor Wheel Indonesia' },
-        { src: 'https://storage.bkkbisa.net/company_logo/hFk0oJVd61DAEs6iSuLJjOYk2dS256.jpg', alt: 'Chuhai Giken Indonesia' },
+        { src: 'https://upload.wikimedia.org/wikipedia/commons/d/da/Wuling_Automobile_Logo.jpg', alt: 'Wuling Motors' },
         { src: 'https://www.istw.co.id/assets/istw/logo.png', alt: 'ISTW' },
         { src: 'https://s3-symbol-logo.tradingview.com/garuda-metalindo-tbk-pt--600.png', alt: 'Garuda Metalindo' },
         { src: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ3oQ1V-cMIelGibSwe9D_TQEh_x3MBg6b41A&s', alt: 'PT selamat sempurna TBK' },
-        { src: 'https://media.licdn.com/dms/image/v2/D4E0BAQHC6zU-MgrPNg/company-logo_200_200/company-logo_200_200/0/1710920359673/pt_mitsubishi_krama_yudha_motors_and_manufacturing_logo?e=2147483647&v=beta&t=uPRYyToT2DiUUvJboGiAchrHrphj1hxubTkHWptXfek', alt: 'PT Mitsubishi motors Krama yudha' },
+        { src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Mitsubishi-logo.png/1280px-Mitsubishi-logo.png', alt: 'PT Mitsubishi motors Krama yudha' },
     ];
 
     // Duplikasi array untuk menciptakan efek loop yang mulus
